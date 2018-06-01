@@ -1,0 +1,14 @@
+{
+  "name": "aws-slack-notification",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Developers <developers@bravenewcoin.com>",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build-aws-resource": "pack-zip"
+  },
+  "devDependencies": {
+    "pack-zip": "^0.2.2"
+  }
+}

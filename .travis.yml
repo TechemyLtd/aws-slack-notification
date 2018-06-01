@@ -1,0 +1,26 @@
+language: node_js
+
+install:
+   - npm install
+
+script: echo OK
+
+deploy:
+  provider: lambda
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  function_name: test_function_4
+  region: us-west-2
+  handler_name: index.handler
+  runtime: nodejs8.10
+  publish: true
+  zip: deploy.zip
+  role: $ROLE
+  on:
+    all_branches: true
+
+before_deploy:
+   - zip -r deploy.zip index.js package.json node_modules/
+
+after_deploy:
+   - unzip -l deploy.zip
