@@ -1,5 +1,4 @@
 'use strict';
-
 const https = require('https');
 
 exports.handler = (event, context, callback) => {
@@ -100,11 +99,11 @@ const getColor = function (state) {
 
 const getPipelineNotification = function (message, slackChannel) {
     if (!isInterestingEvent(message)) {
-        console.log("Ignore event : " + message)
+        console.log("Ignore event : " + message);
         return '';
     }
 
-    const postData = {
+    return {
         "channel": slackChannel,
         "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
         "username": "aws-codepipeline-webhook",
@@ -132,7 +131,6 @@ const getPipelineNotification = function (message, slackChannel) {
             }
         ]
     };
-    return postData;
 };
 
 const getECSNotification = function (message, slackChannel) {
@@ -142,7 +140,7 @@ const getECSNotification = function (message, slackChannel) {
         return '';
     }
 
-    const postData = {
+    return {
         "channel": slackChannel,
         "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
         "username": "AWS",
@@ -174,5 +172,4 @@ const getECSNotification = function (message, slackChannel) {
             }
         ]
     };
-    return postData;
 };
