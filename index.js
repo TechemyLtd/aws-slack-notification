@@ -3,23 +3,23 @@ const https = require('https');
 
 exports.handler = (event, context, callback) => {
     console.log("Event : " + JSON.stringify(event));
-    let postData = '';
-    switch (event.source) {
-        case 'aws.codepipeline':
-            postData = getPipelineNotification(event, getSlackChannel());
-            break;
-        case 'aws.ecs':
-            postData = getECSNotification(event, getSlackChannel());
-            break;
-        default:
-            console.log('Ignored event type : ' + event.source)
-    }
-
-    if (postData !== null && postData !== '') {
+    const postData = buildPostData(event);
+    if (postData !== '') {
         console.log("Ready to post" + JSON.stringify(postData));
         postToSlack(postData, context, callback)
     }
 };
+
+function buildPostData(event) {
+    switch (event.source) {
+        case 'aws.codepipeline':
+            return getPipelineNotification(event, getSlackChannel());
+        case 'aws.ecs':
+            return getECSNotification(event, getSlackChannel());
+    }
+    console.log('Ignored event type : ' + event.source);
+    return '';
+}
 
 function postToSlack(message, context, callback) {
     const data = JSON.stringify(message);
@@ -64,8 +64,8 @@ function isSuccessState(state) {
 }
 
 function isInterestingEvent(event) {
-    let stage = event.detail.stage;
-    let state = event.detail.state;
+    const stage = event.detail.stage;
+    const state = event.detail.state;
 
     if (stage.includes('Deploy')) {
         return true;
@@ -134,8 +134,7 @@ const getPipelineNotification = function (message, slackChannel) {
 };
 
 const getECSNotification = function (message, slackChannel) {
-
-    if(message.detail.desiredStatus !== message.detail.lastStatus) {
+    if (message.detail.desiredStatus !== message.detail.lastStatus) {
         console.log('Ignoring state change event');
         return '';
     }
