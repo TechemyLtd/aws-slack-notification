@@ -16,6 +16,8 @@ function buildPostData(event) {
             return getPipelineNotification(event, getSlackChannel());
         case 'aws.ecs':
             return getECSNotification(event, getSlackChannel());
+        case 'aws.emr':
+            return getEMRNotification(event, getSlackChannel());
     }
     console.log('Ignored event type : ' + event.source);
     return '';
@@ -171,4 +173,27 @@ const getECSNotification = function (message, slackChannel) {
             }
         ]
     };
+};
+
+const getEMRNotification = function (message, slackChannel) {
+    if ("FAILED" === message.detail.state || "COMPLETED" === message.detail.state) {
+        return {
+            "channel": slackChannel,
+            "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
+            "username": "aws-emr",
+            "attachments": [
+                {
+                    "text": getText(message),
+                    "color": getColor(message.detail.state),
+                    "fields": [
+                        {
+                            "title": "State",
+                            "value": message.detail.state,
+                            "short": true
+                        }
+                    ]
+                }
+            ]
+        };
+    }
 };
