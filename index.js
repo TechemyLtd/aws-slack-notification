@@ -11,7 +11,15 @@ exports.handler = (event, context, callback) => {
 };
 
 function buildPostData(event) {
-    switch (event.source) {
+
+    let source = '';
+    if(Array.isArray(event.source)) {
+       source = event.source[0];
+    } else {
+        source = event.source;
+    }
+
+    switch (source) {
         case 'aws.codepipeline':
             return getPipelineNotification(event, getSlackChannel());
         case 'aws.ecs':
@@ -62,7 +70,7 @@ const getSlackChannel = function () {
 };
 
 function isSuccessState(state) {
-    return (state.includes('STARTED') || state.includes('SUCCEEDED'));
+    return (state.includes('STARTED') || state.includes('SUCCEEDED') || state.includes('COMPLETED'));
 }
 
 function isInterestingEvent(event) {
@@ -91,6 +99,19 @@ function getText(message) {
 
     return text;
 }
+
+function getEMRText(message) {
+    let text = '';
+    let clusterIdElement = message.detail.clusterId[0];
+    if (isSuccessState(message.detail.state)) {
+        text = "cluster " + clusterIdElement + " has completed"
+    } else {
+        text = "cluster " + clusterIdElement + " has failed"
+    }
+
+    return text;
+}
+
 
 const getColor = function (state) {
     if (isSuccessState(state)) {
@@ -176,19 +197,21 @@ const getECSNotification = function (message, slackChannel) {
 };
 
 const getEMRNotification = function (message, slackChannel) {
-    if ("FAILED" === message.detail.state || "COMPLETED" === message.detail.state) {
+    console.log('This is EMR event');
+    let state = message.detail.state[0];
+    if ("FAILED" === state || "COMPLETED" === state) {
         return {
             "channel": slackChannel,
             "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
             "username": "aws-emr",
             "attachments": [
                 {
-                    "text": getText(message),
-                    "color": getColor(message.detail.state),
+                    "text": getEMRText(message),
+                    "color": getColor(state),
                     "fields": [
                         {
                             "title": "State",
-                            "value": message.detail.state,
+                            "value": state,
                             "short": true
                         }
                     ]
