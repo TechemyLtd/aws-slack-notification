@@ -26,6 +26,10 @@ function buildPostData(event) {
             return getECSNotification(event, getSlackChannel());
         case 'aws.emr':
             return getEMRNotification(event, getSlackChannel());
+        case 'aws.lambda':
+            return getLambdaNotification(event, getSlackChannel());
+        case 'alert.notification':
+            return getAlertNotification(event, getAlertSlackChannel());
     }
     console.log('Ignored event type : ' + event.source);
     return '';
@@ -69,6 +73,10 @@ const getSlackChannel = function () {
     return process.env.SLACK_CHANNEL;
 };
 
+const getAlertSlackChannel = function () {
+    return process.env.ALERT_SLACK_CHANNEL;
+};
+
 function isSuccessState(state) {
     return (state.includes('STARTED') || state.includes('SUCCEEDED') || state.includes('COMPLETED'));
 }
@@ -110,6 +118,22 @@ function getEMRText(message) {
     }
 
     return text;
+}
+
+function getLambdaText(message) {
+    let text = '';
+    let clusterIdElement = message.detail.clusterId[0];
+    if (isSuccessState(message.detail.state)) {
+        text = "cluster " + clusterIdElement + " has completed"
+    } else {
+        text = "cluster " + clusterIdElement + " has failed"
+    }
+
+    return text;
+}
+
+function getAlertNotificationText(message) {
+    return message.detail.message;
 }
 
 
@@ -219,4 +243,68 @@ const getEMRNotification = function (message, slackChannel) {
             ]
         };
     }
+};
+
+const getLambdaNotification = function (message, slackChannel) {
+    if (!isInterestingEvent(message)) {
+        console.log("Ignore event : " + message);
+        return '';
+    }
+
+    console.log('This is Lambda event');
+    return {
+        "channel": slackChannel,
+        "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
+        "username": "aws-lambda",
+        "attachments": [
+            {
+                "text": getLambdaText(message),
+                "color": getColor(message.detail.state),
+                "fields": [
+                    {
+                        "title": "Lambda",
+                        "value": message.detail.pipeline,
+                        "short": false
+                    },
+                    {
+                        "title": "Stage",
+                        "value": message.detail.stage,
+                        "short": true
+                    },
+                    {
+                        "title": "State",
+                        "value": message.detail.state,
+                        "short": true
+                    }
+                ]
+            }
+        ]
+    };
+};
+
+const getAlertNotification = function (message, slackChannel) {
+    console.log('This is Alert event');
+    return {
+        "channel": slackChannel,
+        "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
+        "username": "aws-alert-notification",
+        "attachments": [
+            {
+                "text": getAlertNotificationText(message),
+                "color": getColor(message.detail.message),
+                "fields": [
+                    {
+                        "title": "Running Athena Query",
+                        "value": message.detail.sqlQuery,
+                        "short": true
+                    },
+                    {
+                        "title": "Total Number",
+                        "value": message.detail.number,
+                        "short": true
+                    }
+                ]
+            }
+        ]
+    };
 };
