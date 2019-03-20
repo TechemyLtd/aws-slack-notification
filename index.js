@@ -294,14 +294,19 @@ const getAlertNotification = function (message, slackChannel) {
                 "color": getColor(message.detail.message),
                 "fields": [
                     {
-                        "title": "Running Athena Query",
-                        "value": message.detail.sqlQuery,
-                        "short": true
+                        "title": "Details",
+                        "value": message.detail.details,
+                        "short": false
                     },
                     {
                         "title": "Total Number",
                         "value": message.detail.number,
-                        "short": true
+                        "short": false
+                    },
+                    {
+                        "title": "Running Query",
+                        "value": message.detail.sqlQuery,
+                        "short": false
                     }
                 ]
             }
