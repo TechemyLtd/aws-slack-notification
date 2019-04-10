@@ -78,7 +78,7 @@ const getAlertSlackChannel = function () {
 };
 
 function isSuccessState(state) {
-    return (state.includes('STARTED') || state.includes('SUCCEEDED') || state.includes('COMPLETED'));
+    return (state.includes('STARTED') || state.includes('SUCCEEDED') || state.includes('COMPLETED') || state.includes('GREEN'));
 }
 
 function isInterestingEvent(event) {
@@ -284,6 +284,27 @@ const getLambdaNotification = function (message, slackChannel) {
 
 const getAlertNotification = function (message, slackChannel) {
     console.log('This is Alert event');
+    var fields = [
+        {
+            "title": "Details",
+            "value": message.detail.details,
+            "short": false
+        },
+        {
+            "title": "Total Number",
+            "value": message.detail.number,
+            "short": false
+        },
+        {
+            "title": "Running Query",
+            "value": message.detail.sqlQuery,
+            "short": false
+        }
+    ];
+
+    if (! message.detail.details) {
+        fields = fields.slice(2, 3);
+    }
     return {
         "channel": slackChannel,
         "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
@@ -291,24 +312,8 @@ const getAlertNotification = function (message, slackChannel) {
         "attachments": [
             {
                 "text": getAlertNotificationText(message),
-                "color": getColor(message.detail.message),
-                "fields": [
-                    {
-                        "title": "Details",
-                        "value": message.detail.details,
-                        "short": false
-                    },
-                    {
-                        "title": "Total Number",
-                        "value": message.detail.number,
-                        "short": false
-                    },
-                    {
-                        "title": "Running Query",
-                        "value": message.detail.sqlQuery,
-                        "short": false
-                    }
-                ]
+                "color": getColor(message.detail.color),
+                "fields": fields
             }
         ]
     };
