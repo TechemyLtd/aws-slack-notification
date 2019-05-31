@@ -13,8 +13,8 @@ exports.handler = (event, context, callback) => {
 function buildPostData(event) {
 
     let source = '';
-    if(Array.isArray(event.source)) {
-       source = event.source[0];
+    if (Array.isArray(event.source)) {
+        source = event.source[0];
     } else {
         source = event.source;
     }
@@ -78,7 +78,8 @@ const getAlertSlackChannel = function () {
 };
 
 function isSuccessState(state) {
-    return (state.includes('STARTED') || state.includes('SUCCEEDED') || state.includes('COMPLETED') || state.includes('GREEN'));
+    return (state.includes('STARTED') || state.includes('SUCCEEDED')
+        || state.includes('COMPLETED') || state.includes('GREEN'));
 }
 
 function isInterestingEvent(event) {
@@ -136,7 +137,6 @@ function getAlertNotificationText(message) {
     return message.detail.message;
 }
 
-
 const getColor = function (state) {
     if (isSuccessState(state)) {
         return "#3fb836";
@@ -192,7 +192,8 @@ const getECSNotification = function (message, slackChannel) {
         "username": "AWS",
         "attachments": [
             {
-                "text": "Task " + message.detail.containers[0].name + " has " + message.detail.lastStatus,
+                "text": "Task " + message.detail.containers[0].name + " has "
+                    + message.detail.lastStatus,
                 "fields": [
                     {
                         "title": "Name",
@@ -286,24 +287,19 @@ const getAlertNotification = function (message, slackChannel) {
     console.log('This is Alert event');
     var fields = [
         {
-            "title": "Details",
-            "value": message.detail.details,
-            "short": false
-        },
-        {
             "title": "Total Number",
             "value": message.detail.number,
             "short": false
         },
         {
-            "title": "Running Query",
-            "value": message.detail.sqlQuery,
+            "title": "Dashboard Url",
+            "value": message.detail.dashboardUrl,
             "short": false
         }
     ];
 
-    if (! message.detail.details) {
-        fields = fields.slice(2, 3);
+    if (message.detail.number === '0') {
+        fields = fields.slice(0,0);
     }
     return {
         "channel": slackChannel,
