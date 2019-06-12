@@ -79,7 +79,7 @@ const getAlertSlackChannel = function () {
 
 function isSuccessState(state) {
     return (state.includes('STARTED') || state.includes('SUCCEEDED')
-        || state.includes('COMPLETED') || state.includes('GREEN'));
+        || state.includes('COMPLETED'));
 }
 
 function isInterestingEvent(event) {
@@ -298,9 +298,6 @@ const getAlertNotification = function (message, slackChannel) {
         }
     ];
 
-    if (message.detail.number === '0') {
-        fields = fields.slice(0,0);
-    }
     return {
         "channel": slackChannel,
         "icon_url": "https://docs.aws.amazon.com/images/aws_logo_105x39.png",
@@ -308,7 +305,7 @@ const getAlertNotification = function (message, slackChannel) {
         "attachments": [
             {
                 "text": getAlertNotificationText(message),
-                "color": getColor(message.detail.color),
+                "color": getColor(message.detail.message),
                 "fields": fields
             }
         ]
