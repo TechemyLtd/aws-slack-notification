@@ -41,7 +41,7 @@ function postToSlack(message, context, callback) {
     const post_options = {
         host: 'hooks.slack.com',
         port: '443',
-        path: getSlackPath(),
+        path: getSlackPathForChannel(message.channel),
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -66,8 +66,20 @@ function postToSlack(message, context, callback) {
     req.end();
 }
 
+const getSlackPathForChannel = function (channel) {
+    if (channel === getAlertSlackChannel()) {
+        return getAlertSlackPath()
+    }
+
+    return getSlackPath()
+
+};
+
 const getSlackPath = function () {
     return process.env.SLACK_PATH;
+};
+const getAlertSlackPath = function () {
+    return process.env.ALERT_SLACK_PATH;
 };
 const getSlackChannel = function () {
     return process.env.SLACK_CHANNEL;
